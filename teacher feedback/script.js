@@ -1,29 +1,25 @@
 // ========== 阿里云百炼 API 配置 ==========
 const API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
-const API_KEY = 'sk-581d84f38bb74e02bac28917623796a6';  // 请换成你自己的Key
+const API_KEY = 'sk-581d84f38bb74e02bac28917623796a6';  // ⚠️ 请换成你自己的Key
 const MODEL = 'qwen-plus';
 
 // ========== 数据管理 ==========
 const STORAGE_KEY = 'teacher_feedback_students';
 
-// 获取所有学生数据
 function getAllStudents() {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
 }
 
-// 保存所有学生数据
 function saveAllStudents(students) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
 }
 
-// 根据ID获取学生
 function getStudentById(id) {
     const students = getAllStudents();
     return students.find(s => s.id === id);
 }
 
-// 更新指定学生
 function updateStudent(id, updateFn) {
     const students = getAllStudents();
     const index = students.findIndex(s => s.id === id);
@@ -35,7 +31,6 @@ function updateStudent(id, updateFn) {
     return false;
 }
 
-// 创建新学生
 function createStudent(name, grade, subject, gender, parent) {
     const students = getAllStudents();
     const newStudent = {
@@ -52,7 +47,6 @@ function createStudent(name, grade, subject, gender, parent) {
     return newStudent;
 }
 
-// 删除学生
 function deleteStudent(id) {
     const students = getAllStudents();
     const filtered = students.filter(s => s.id !== id);
@@ -62,19 +56,18 @@ function deleteStudent(id) {
 // ========== 页面判断 ==========
 const isHomePage = window.location.pathname.endsWith('index.html') || 
                    window.location.pathname.endsWith('/') ||
-                   window.location.pathname.endsWith('/teacher-feedback/');
+                   window.location.pathname.endsWith('/teacher%20feedback/') ||
+                   window.location.pathname.endsWith('/teacher feedback/');
 
 const isStudentPage = window.location.pathname.includes('student.html');
 
 // ========== 首页逻辑 ==========
 
-// 切换科目标签选中状态
 window.toggleSubjectTag = function(tag) {
     tag.classList.toggle('selected');
     updateSelectedSubjects();
 };
 
-// 更新隐藏字段的值
 function updateSelectedSubjects() {
     const selectedTags = document.querySelectorAll('.subject-tag.selected');
     const subjects = Array.from(selectedTags).map(tag => tag.getAttribute('data-value'));
@@ -82,7 +75,6 @@ function updateSelectedSubjects() {
 }
 
 if (isHomePage) {
-    // 渲染学生列表
     function renderStudentList() {
         const students = getAllStudents();
         const listContainer = document.getElementById('studentList');
@@ -96,21 +88,20 @@ if (isHomePage) {
         
         emptyState.style.display = 'none';
         listContainer.innerHTML = students.map(student => `
-    <div class="student-card">
-        <div class="student-card-content" onclick="goToStudent('${student.id}')">
-            <h3>${student.name} ${student.gender === '男' ? '👦' : '👧'}</h3>
-            <p>${student.grade}</p>
-            <p class="student-subjects">📖 ${student.subject}</p>
-            <p class="feedback-count">📋 ${student.feedbacks.length} 条反馈</p>
-        </div>
-        <button class="delete-student-btn" onclick="deleteStudentConfirm('${student.id}', '${student.name}')" title="删除学生">
-            🗑️
-        </button>
-    </div>
-`).join('');
+            <div class="student-card">
+                <div class="student-card-content" onclick="goToStudent('${student.id}')">
+                    <h3>${student.name} ${student.gender === '男' ? '👦' : '👧'}</h3>
+                    <p>${student.grade}</p>
+                    <p class="student-subjects">📖 ${student.subject}</p>
+                    <p class="feedback-count">📋 ${student.feedbacks.length} 条反馈</p>
+                </div>
+                <button class="delete-student-btn" onclick="deleteStudentConfirm('${student.id}', '${student.name}')" title="删除学生">
+                    🗑️
+                </button>
+            </div>
+        `).join('');
     }
     
-    // 确认删除学生
     window.deleteStudentConfirm = function(studentId, studentName) {
         if (confirm(`确定要删除学生"${studentName}"吗？\n所有历史反馈记录也会被删除，此操作不可恢复。`)) {
             deleteStudent(studentId);
@@ -119,68 +110,60 @@ if (isHomePage) {
         }
     };
     
-    // 跳转到学生详情页
     window.goToStudent = function(studentId) {
         window.location.href = `student.html?id=${studentId}`;
     };
     
     window.openNewStudentModal = function() {
-    document.getElementById('newStudentModal').style.display = 'flex';
-    document.getElementById('newName').value = '';
-    document.getElementById('newGrade').value = '';
-    document.getElementById('newSubject').value = '';
+        document.getElementById('newStudentModal').style.display = 'flex';
+        document.getElementById('newName').value = '';
+        document.getElementById('newGrade').value = '';
+        document.getElementById('newSubject').value = '';
+        
+        document.querySelectorAll('.subject-tag').forEach(tag => {
+            tag.classList.remove('selected');
+        });
+        
+        const genderRadios = document.querySelectorAll('input[name="gender"]');
+        genderRadios.forEach(radio => radio.checked = false);
+        
+        const parentRadios = document.querySelectorAll('input[name="parent"]');
+        parentRadios.forEach(radio => radio.checked = false);
+    };
     
-    // 清空所有标签的选中状态
-    document.querySelectorAll('.subject-tag').forEach(tag => {
-        tag.classList.remove('selected');
-    });
-    
-    // 👇👇👇 清空性别和家长选择 👇👇👇
-    const genderRadios = document.querySelectorAll('input[name="gender"]');
-    genderRadios.forEach(radio => radio.checked = false);
-    
-    const parentRadios = document.querySelectorAll('input[name="parent"]');
-    parentRadios.forEach(radio => radio.checked = false);
-};
-    
-    // 关闭新建弹窗
     window.closeNewStudentModal = function() {
         document.getElementById('newStudentModal').style.display = 'none';
     };
     
-    // 创建新学生
-window.createNewStudent = function() {
-    const name = document.getElementById('newName').value.trim();
-    const grade = document.getElementById('newGrade').value;
-    const subject = document.getElementById('newSubject').value;
+    window.createNewStudent = function() {
+        const name = document.getElementById('newName').value.trim();
+        const grade = document.getElementById('newGrade').value;
+        const subject = document.getElementById('newSubject').value;
+        
+        const genderRadio = document.querySelector('input[name="gender"]:checked');
+        const parentRadio = document.querySelector('input[name="parent"]:checked');
+        const gender = genderRadio ? genderRadio.value : '';
+        const parent = parentRadio ? parentRadio.value : '';
+        
+        if (!name || !grade || !subject || !gender || !parent) {
+            alert('请填写完整信息（姓名、年级、科目、性别、发送对象）');
+            return;
+        }
+        
+        const newStudent = createStudent(name, grade, subject, gender, parent);
+        closeNewStudentModal();
+        renderStudentList();
+        
+        if (confirm(`学生"${name}"创建成功！是否立即进入？`)) {
+            goToStudent(newStudent.id);
+        }
+    };
     
-    // 👇👇👇 获取性别和家长选择 👇👇👇
-    const genderRadio = document.querySelector('input[name="gender"]:checked');
-    const parentRadio = document.querySelector('input[name="parent"]:checked');
-    const gender = genderRadio ? genderRadio.value : '';
-    const parent = parentRadio ? parentRadio.value : '';
-    
-    if (!name || !grade || !subject || !gender || !parent) {
-        alert('请填写完整信息（姓名、年级、科目、性别、发送对象）');
-        return;
-    }
-    
-    const newStudent = createStudent(name, grade, subject, gender, parent);
-    closeNewStudentModal();
-    renderStudentList();
-    
-    if (confirm(`学生"${name}"创建成功！是否立即进入？`)) {
-        goToStudent(newStudent.id);
-    }
-};
-    
-    // 初始化
     renderStudentList();
 }
 
 // ========== 学生详情页逻辑 ==========
 if (isStudentPage) {
-    // 获取URL参数中的学生ID
     const urlParams = new URLSearchParams(window.location.search);
     const studentId = urlParams.get('id');
     
@@ -188,7 +171,6 @@ if (isStudentPage) {
     let currentPreviewFeedback = '';
     let imageBase64List = [];
     
-    // 初始化页面
     function initStudentPage() {
         if (!studentId) {
             alert('未找到学生信息');
@@ -204,17 +186,16 @@ if (isStudentPage) {
         }
         
         document.getElementById('displayName').textContent = currentStudent.name;
-    document.getElementById('displayGender').textContent = currentStudent.gender || '-';
-    document.getElementById('displayGrade').textContent = currentStudent.grade;
-    document.getElementById('displaySubject').textContent = currentStudent.subject;
-    document.getElementById('displayParent').textContent = currentStudent.parent || '-';
-    document.getElementById('pageTitle').textContent = `📖 ${currentStudent.name}的反馈记录`;
+        document.getElementById('displayGender').textContent = currentStudent.gender || '-';
+        document.getElementById('displayGrade').textContent = currentStudent.grade;
+        document.getElementById('displaySubject').textContent = currentStudent.subject;
+        document.getElementById('displayParent').textContent = currentStudent.parent || '-';
+        document.getElementById('pageTitle').textContent = `📖 ${currentStudent.name}的反馈记录`;
         
         renderFeedbackHistory();
         document.getElementById('photoInput').addEventListener('change', handlePhotoUpload);
     }
     
-    // 处理图片上传
     async function handlePhotoUpload(e) {
         const files = e.target.files;
         imageBase64List = [];
@@ -232,7 +213,6 @@ if (isStudentPage) {
         }
     }
     
-    // 压缩图片并转为Base64
     async function compressAndConvertToBase64(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -269,7 +249,6 @@ if (isStudentPage) {
         });
     }
     
-    // 渲染历史反馈
     function renderFeedbackHistory() {
         const historyContainer = document.getElementById('feedbackHistory');
         const noHistory = document.getElementById('noHistory');
@@ -352,9 +331,12 @@ if (isStudentPage) {
         previewContent.innerHTML = '<span style="color: #999;">⏳ AI 正在分析信息，生成专业反馈中...</span>';
         
         try {
+            const salutation = currentStudent.parent === '爸爸' ? '爸爸' : 
+                               currentStudent.parent === '妈妈' ? '妈妈' : '家长';
+            
             let prompt = `你是一位专业的${currentStudent.grade}${currentStudent.subject}老师，说话温暖、接地气。
 
-请根据以下信息，写一段给${currentStudent.name}${currentStudent.parent}家长的课后反馈：
+请根据以下信息，写一段给${currentStudent.name}${currentStudent.parent}的课后反馈：
 
 【学生】${currentStudent.name}（${currentStudent.grade}，${currentStudent.gender}生）
 【本节课主题】${lessonTopic}
@@ -363,8 +345,7 @@ if (isStudentPage) {
             if (extraNote) {
                 prompt += `\n【补充说明】${extraNote}`;
             }
-const salutation = currentStudent.parent === '爸爸' ? '爸爸' : 
-                   currentStudent.parent === '妈妈' ? '妈妈' : '家长';
+
             prompt += `\n\n要求：
 1. 开头称呼"${currentStudent.name}${salutation}好"
 2. 结合${currentStudent.grade}的学情特点和${currentStudent.gender}生的学习特点来分析
@@ -378,15 +359,15 @@ const salutation = currentStudent.parent === '爸爸' ? '爸爸' :
 然后又花了十五分钟左右做了两道数学列方程进阶题，她容易对题目理解不到位导致找不到等量关系，我还是会多给她找类似的等量关系让她理解记忆（比如利润=售价-成本、路程=速度×时间）`;
 
             const messages = [
-    {
-        role: 'system',
-        content: `你是一位专业的${currentStudent.grade}${currentStudent.subject}老师，擅长撰写得体的家长沟通反馈。注意学生的性别是${currentStudent.gender}，家长称呼是${currentStudent.parent}。`
-    },
-    {
-        role: 'user',
-        content: prompt
-    }
-];
+                {
+                    role: 'system',
+                    content: `你是一位专业的${currentStudent.grade}${currentStudent.subject}老师，擅长撰写得体的家长沟通反馈。注意学生的性别是${currentStudent.gender}，家长称呼是${currentStudent.parent}。`
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ];
             
             if (imageBase64List.length > 0) {
                 const imageContent = imageBase64List.map(base64 => ({
