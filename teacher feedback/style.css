@@ -580,3 +580,44 @@ footer {
     font-size: 0.9rem;
     margin-bottom: 4px;
 }
+/* ========== 性别和家长选择器样式 ========== */
+.gender-selector,
+.parent-selector {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.gender-option,
+.parent-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 8px 16px;
+    background: #f5f5f5;
+    border-radius: 30px;
+    transition: background 0.2s;
+}
+
+.gender-option:hover,
+.parent-option:hover {
+    background: #e8ecff;
+}
+
+.gender-option input,
+.parent-option input {
+    width: auto;
+    margin-right: 4px;
+}
+
+.gender-option input:checked + span,
+.parent-option input:checked + span {
+    font-weight: 600;
+}
+
+.gender-option:has(input:checked),
+.parent-option:has(input:checked) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
