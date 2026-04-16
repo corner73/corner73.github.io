@@ -154,12 +154,14 @@ main {
 }
 
 .student-card {
+    position: relative;
+    display: flex;
+    align-items: center;
     background: linear-gradient(135deg, #f5f7fa 0%, #e8ecff 100%);
     border-radius: 16px;
     padding: 20px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid #d0d8ff;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .student-card:hover {
@@ -167,22 +169,52 @@ main {
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
 }
 
-.student-card h3 {
+.student-card-content {
+    flex: 1;
+    cursor: pointer;
+}
+
+.student-card-content h3 {
     color: #333;
     margin-bottom: 8px;
     font-size: 1.3rem;
 }
 
-.student-card p {
+.student-card-content p {
     color: #666;
     font-size: 0.9rem;
     margin-bottom: 4px;
 }
 
-.student-card .feedback-count {
+.student-subjects {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.feedback-count {
     margin-top: 12px;
     color: #667eea;
     font-weight: 600;
+}
+
+.delete-student-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(231, 76, 60, 0.1);
+    border: none;
+    font-size: 18px;
+    padding: 6px 10px;
+    border-radius: 30px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s, background 0.2s;
+}
+
+.delete-student-btn:hover {
+    opacity: 1;
+    background: rgba(231, 76, 60, 0.2);
 }
 
 /* ========== 学生信息卡片 ========== */
@@ -293,6 +325,74 @@ main {
 
 .required {
     color: #e74c3c;
+}
+
+/* ========== 性别和家长选择器 ========== */
+.gender-selector,
+.parent-selector {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.gender-option,
+.parent-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 10px 18px;
+    background: #f5f5f5;
+    border-radius: 30px;
+    transition: background 0.2s;
+}
+
+.gender-option:hover,
+.parent-option:hover {
+    background: #e8ecff;
+}
+
+.gender-option input,
+.parent-option input {
+    width: auto;
+    margin-right: 4px;
+}
+
+.gender-option:has(input:checked),
+.parent-option:has(input:checked) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* ========== 多选标签样式 ========== */
+.subject-tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.subject-tag {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #f0f0f0;
+    color: #555;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    user-select: none;
+}
+
+.subject-tag:hover {
+    background: #e0e0e0;
+}
+
+.subject-tag.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
 }
 
 /* ========== 预览区域 ========== */
@@ -481,143 +581,4 @@ footer {
     .modal-content {
         width: 95%;
     }
-}
-/* ========== 多选标签样式 ========== */
-.subject-tag-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 5px;
-}
-
-.subject-tag {
-    display: inline-block;
-    padding: 8px 16px;
-    background: #f0f0f0;
-    color: #555;
-    border-radius: 30px;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 2px solid transparent;
-    user-select: none;
-}
-
-.subject-tag:hover {
-    background: #e0e0e0;
-}
-
-.subject-tag.selected {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-color: #667eea;
-}
-/* ========== 多选标签样式 ========== */
-.subject-tag-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 5px;
-}
-
-.subject-tag {
-    display: inline-block;
-    padding: 8px 16px;
-    background: #f0f0f0;
-    color: #555;
-    border-radius: 30px;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 2px solid transparent;
-    user-select: none;
-}
-
-.subject-tag:hover {
-    background: #e0e0e0;
-}
-
-.subject-tag.selected {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-color: #667eea;
-}
-
-/* ========== 学生卡片删除按钮 ========== */
-.student-card {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.student-card-content {
-    flex: 1;
-    cursor: pointer;
-}
-
-.delete-student-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(231, 76, 60, 0.1);
-    border: none;
-    font-size: 18px;
-    padding: 6px 10px;
-    border-radius: 30px;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s, background 0.2s;
-}
-
-.delete-student-btn:hover {
-    opacity: 1;
-    background: rgba(231, 76, 60, 0.2);
-}
-
-/* 学生卡片内的科目显示 */
-.student-subjects {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
-}
-/* ========== 性别和家长选择器样式 ========== */
-.gender-selector,
-.parent-selector {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.gender-option,
-.parent-option {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    padding: 8px 16px;
-    background: #f5f5f5;
-    border-radius: 30px;
-    transition: background 0.2s;
-}
-
-.gender-option:hover,
-.parent-option:hover {
-    background: #e8ecff;
-}
-
-.gender-option input,
-.parent-option input {
-    width: auto;
-    margin-right: 4px;
-}
-
-.gender-option input:checked + span,
-.parent-option input:checked + span {
-    font-weight: 600;
-}
-
-.gender-option:has(input:checked),
-.parent-option:has(input:checked) {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
 }
