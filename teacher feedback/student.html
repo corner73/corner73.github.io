@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生详情 · 教学反馈</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-with-back">
+                <button class="back-btn" onclick="goBack()">← 返回</button>
+                <h1 id="pageTitle">📖 学生详情</h1>
+            </div>
+        </header>
+
+        <main>
+            <!-- 学生信息卡片 -->
+            <div class="student-info-card">
+                <div class="info-row">
+                    <span class="info-label">👤 姓名：</span>
+                    <span class="info-value" id="displayName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📌 年级：</span>
+                    <span class="info-value" id="displayGrade">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📖 科目：</span>
+                    <span class="info-value" id="displaySubject">-</span>
+                </div>
+            </div>
+
+            <!-- 生成新反馈区域（可折叠） -->
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleNewFeedback()">
+                    <h3>✨ 生成本次课反馈</h3>
+                    <span id="toggleIcon">▼</span>
+                </div>
+                <div id="newFeedbackPanel" class="section-content">
+                    <div class="form-group">
+                        <label for="lessonTopic">📚 本节课主题 <span class="required">*</span></label>
+                        <input type="text" id="lessonTopic" placeholder="例：分数的加减法 / 古诗《静夜思》">
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonContent">✏️ 学习内容与完成情况 <span class="required">*</span></label>
+                        <textarea id="lessonContent" rows="4" placeholder="例：今天学习了分数的加减法，完成了课本第25-26页的10道练习题。学生整体掌握较好，但在通分环节容易出错..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="photoInput">📸 题目照片（可选，可多选）</label>
+                        <input type="file" id="photoInput" accept="image/*" multiple>
+                        <small id="photoCount" style="display: none; color: #667eea; font-weight: 500;">
+                            📎 已选择 <span id="selectedCount">0</span> 张照片
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="extraNote">💬 补充说明（可选）</label>
+                        <input type="text" id="extraNote" placeholder="例：今天举手发言很积极 / 注意力需要提醒">
+                    </div>
+                    
+                    <button class="btn-primary btn-full" onclick="generateAndSaveFeedback()">
+                        🤖 AI 生成反馈并保存
+                    </button>
+                    
+                    <!-- 生成结果预览 -->
+                    <div id="previewSection" style="display: none;">
+                        <div class="preview-header">
+                            <h4>📋 生成的反馈</h4>
+                            <button class="btn-small" onclick="copyPreview()">📋 复制</button>
+                        </div>
+                        <div id="previewContent" class="preview-box"></div>
+                        <button class="btn-success btn-full" onclick="saveCurrentFeedback()">
+                            💾 确认保存到历史记录
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史反馈记录 -->
+            <div class="history-section">
+                <h3>📜 历史反馈记录</h3>
+                <div id="feedbackHistory" class="history-list">
+                    <!-- 动态渲染 -->
+                </div>
+                <div id="noHistory" class="empty-state" style="display: none;">
+                    <p>📭 还没有反馈记录</p>
+                    <p>点击上方按钮，生成第一条反馈吧</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
