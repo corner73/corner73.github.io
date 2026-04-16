@@ -49,6 +49,19 @@
                     <label for="newName">👤 学生姓名 <span class="required">*</span></label>
                     <input type="text" id="newName" placeholder="例：张三">
                 </div>
+                
+                <div class="form-group">
+                    <label>🚻 学生性别 <span class="required">*</span></label>
+                    <div class="gender-selector">
+                        <label class="gender-option">
+                            <input type="radio" name="gender" value="男"> 👦 男
+                        </label>
+                        <label class="gender-option">
+                            <input type="radio" name="gender" value="女"> 👧 女
+                        </label>
+                    </div>
+                </div>
+                
                 <div class="form-group">
                     <label for="newGrade">📌 年级 <span class="required">*</span></label>
                     <select id="newGrade">
@@ -67,6 +80,7 @@
                         <option value="高三">高三</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label>📖 科目 <span class="required">*</span> <span style="font-weight: normal; color: #888; font-size: 0.85rem;">（可多选）</span></label>
                     <div class="subject-tag-container" id="subjectTags">
@@ -82,32 +96,21 @@
                     </div>
                     <input type="hidden" id="newSubject" value="">
                 </div>
+                
                 <div class="form-group">
-    <label>🚻 学生性别 <span class="required">*</span></label>
-    <div class="gender-selector">
-        <label class="gender-option">
-            <input type="radio" name="gender" value="男"> 👦 男
-        </label>
-        <label class="gender-option">
-            <input type="radio" name="gender" value="女"> 👧 女
-        </label>
-    </div>
-</div>
-
-<div class="form-group">
-    <label>👪 反馈发送给 <span class="required">*</span></label>
-    <div class="parent-selector">
-        <label class="parent-option">
-            <input type="radio" name="parent" value="爸爸"> 👨 爸爸
-        </label>
-        <label class="parent-option">
-            <input type="radio" name="parent" value="妈妈"> 👩 妈妈
-        </label>
-        <label class="parent-option">
-            <input type="radio" name="parent" value="家长"> 👪 家长（通用）
-        </label>
-    </div>
-</div>
+                    <label>👪 反馈发送给 <span class="required">*</span></label>
+                    <div class="parent-selector">
+                        <label class="parent-option">
+                            <input type="radio" name="parent" value="爸爸"> 👨 爸爸
+                        </label>
+                        <label class="parent-option">
+                            <input type="radio" name="parent" value="妈妈"> 👩 妈妈
+                        </label>
+                        <label class="parent-option">
+                            <input type="radio" name="parent" value="家长"> 👪 家长（通用）
+                        </label>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeNewStudentModal()">取消</button>
