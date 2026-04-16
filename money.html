@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 AI 智能记账</title>
+    <!-- Chart.js 用于绘制统计图表 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #fef9e6 0%, #fff8d6 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 头部区域 */
+        .header {
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #8b6914;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+        }
+
+        .header h1 span {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            color: white;
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(251, 191, 36, 0.3);
+        }
+
+        .subtitle {
+            color: #a68b2c;
+            font-size: 14px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #fff9e6 0%, #fef3c7 100%);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
+            transform: translateY(-2px);
+            border-color: #fbbf24;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #8b6914;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .stat-value.income { color: #059669; }
+        .stat-value.expense { color: #dc2626; }
+        .stat-value.balance { color: #b45309; }
+        .stat-value.count { color: #d97706; }
+
+        /* 主内容区：左侧图表 + 右侧AI输入 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        /* 图表卡片 */
+        .chart-card {
+            background: linear-gradient(135deg, #fff9e6 0%, #fef3c7 100%);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #8b6914;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            padding: 6px 16px;
+            border: 1px solid #fbbf24;
+            background: rgba(255, 251, 235, 0.8);
+            border-radius: 30px;
+            font-size: 13px;
+            color: #8b6914;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .tab-btn:hover {
+            background: #fef3c7;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            border-color: #f59e0b;
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 260px;
+        }
+
+        /* AI 输入卡片 */
+        .ai-card {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 12px 28px rgba(245, 158, 11, 0.4);
+            color: white;
+            border: 1px solid #fcd34d;
+        }
+
+        .ai-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-card p {
+            font-size: 13px;
+            opacity: 0.95;
+            margin-bottom: 20px;
+            color: #fef3c7;
+        }
+
+        .ai-input-area {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 4px;
+            display: flex;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .ai-input-area input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 14px 16px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .ai-input-area input::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .ai-input-area button {
+            background: white;
+            border: none;
+            border-radius: 14px;
+            padding: 0 20px;
+            font-weight: 700;
+            color: #d97706;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-input-area button:hover {
+            background: #fef3c7;
+            transform: scale(0.98);
+        }
+
+        .ai-input-area button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .ai-status {
+            margin-top: 16px;
+            font-size: 12px;
+            opacity: 0.95;
+            min-height: 20px;
+            color: #fef3c7;
+        }
+
+        /* 流水列表 */
+        .transactions-section {
+            background: linear-gradient(135deg, #fff9e6 0%, #fef3c7 100%);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #8b6914;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-select {
+            padding: 8px 14px;
+            border: 1px solid #fbbf24;
+            border-radius: 30px;
+            font-size: 13px;
+            background: rgba(255, 251, 235, 0.8);
+            color: #8b6914;
+            cursor: pointer;
+            outline: none;
+            font-weight: 500;
+        }
+
+        .delete-all-btn {
+            padding: 8px 16px;
+            border: 1px solid #fca5a5;
+            background: #fef2f2;
+            color: #dc2626;
+            border-radius: 30px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .delete-all-btn:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .transactions-list {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 14px;
+            font-size: 18px;
+        }
+
+        .transaction-icon.income { 
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #059669; 
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.15);
+        }
+        .transaction-icon.expense { 
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #dc2626; 
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.1);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-title {
+            font-weight: 600;
+            color: #78350f;
+            margin-bottom: 4px;
+        }
+
+        .transaction-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #a68b2c;
+        }
+
+        .transaction-category {
+            background: rgba(251, 191, 36, 0.2);
+            padding: 2px 10px;
+            border-radius: 30px;
+            color: #8b6914;
+            font-weight: 500;
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .transaction-amount.income { color: #059669; }
+        .transaction-amount.expense { color: #dc2626; }
+
+        .transaction-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .edit-btn, .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            transition: all 0.2s;
+            border-radius: 8px;
+        }
+
+        .edit-btn {
+            color: #d4a373;
+        }
+
+        .edit-btn:hover {
+            color: #d97706;
+            background: rgba(251, 191, 36, 0.2);
+        }
+
+        .delete-btn {
+            color: #d4a373;
+        }
+
+        .delete-btn:hover {
+            color: #dc2626;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #c4a44a;
+        }
+
+        /* 编辑弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #fff9e6 0%, #fef3c7 100%);
+            border-radius: 24px;
+            padding: 28px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3);
+            border: 1px solid #fcd34d;
+        }
+
+        .modal h3 {
+            color: #8b6914;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-form-group {
+            margin-bottom: 18px;
+        }
+
+        .modal-form-group label {
+            display: block;
+            color: #8b6914;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .modal-form-group input,
+        .modal-form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #fbbf24;
+            background: rgba(255, 251, 235, 0.8);
+            border-radius: 12px;
+            font-size: 15px;
+            color: #78350f;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .modal-form-group input:focus,
+        .modal-form-group select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .modal-btn.save {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .modal-btn.save:hover {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .modal-btn.cancel {
+            background: rgba(251, 191, 36, 0.15);
+            color: #8b6914;
+            border: 1px solid #fbbf24;
+        }
+
+        .modal-btn.cancel:hover {
+            background: rgba(251, 191, 36, 0.25);
+        }
+
+        /* 滚动条美化 */
+        .transactions-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .transactions-list::-webkit-scrollbar-track {
+            background: rgba(251, 191, 36, 0.1);
+            border-radius: 10px;
+        }
+
+        .transactions-list::-webkit-scrollbar-thumb {
+            background: rgba(251, 191, 36, 0.4);
+            border-radius: 10px;
+        }
+
+        .transactions-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(251, 191, 36, 0.6);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>
+                💰 AI 智能记账
+                <span>自然语言输入</span>
+            </h1>
+            <div class="subtitle">用说话的方式记账 · 支持编辑修改 · 数据保存在浏览器中</div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">📊 总收入</div>
+                <div class="stat-value income" id="totalIncome">¥0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📉 总支出</div>
+                <div class="stat-value expense" id="totalExpense">¥0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">💰 结余</div>
+                <div class="stat-value balance" id="balance">¥0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📝 交易笔数</div>
+                <div class="stat-value count" id="transactionCount">0</div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 图表区 -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2>📈 支出分类统计</h2>
+                    <div class="chart-tabs">
+                        <button class="tab-btn active" data-chart="pie">🥧 饼图</button>
+                        <button class="tab-btn" data-chart="bar">📊 柱状图</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- AI 输入区 -->
+            <div class="ai-card">
+                <h3>💬 告诉 AI 你的消费</h3>
+                <p>支持中文自然语言，自动识别金额、类别</p>
+                <div class="ai-input-area">
+                    <input type="text" id="aiInput" placeholder="例如：午饭吃了碗面 25 块" autocomplete="off">
+                    <button id="sendToAI">↵ 记账</button>
+                </div>
+                <div class="ai-status" id="aiStatus"></div>
+            </div>
+        </div>
+
+        <!-- 流水列表 -->
+        <div class="transactions-section">
+            <div class="section-header">
+                <h2>📋 流水记录</h2>
+                <div style="display: flex; gap: 12px;">
+                    <select class="filter-select" id="categoryFilter">
+                        <option value="all">全部分类</option>
+                        <option value="收入">💰 收入</option>
+                        <option value="支出">💸 支出</option>
+                        <option value="餐饮">🍜 餐饮</option>
+                        <option value="交通">🚗 交通</option>
+                        <option value="购物">🛍️ 购物</option>
+                        <option value="娱乐">🎮 娱乐</option>
+                        <option value="住房">🏠 住房</option>
+                        <option value="工资">💼 工资</option>
+                        <option value="其他">📦 其他</option>
+                    </select>
+                    <button class="delete-all-btn" id="clearAllBtn">🗑️ 清空所有记录</button>
+                </div>
+            </div>
+            <div class="transactions-list" id="transactionsList">
+                <div class="empty-state">
+                    <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #8b6914;">还没有记账记录</div>
+                    <div style="font-size: 14px;">在上方输入框告诉 AI 你的消费吧</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <div id="editModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <h3>✏️ 编辑记录</h3>
+            <div class="modal-form-group">
+                <label>类型</label>
+                <select id="editType">
+                    <option value="income">💰 收入</option>
+                    <option value="expense">💸 支出</option>
+                </select>
+            </div>
+            <div class="modal-form-group">
+                <label>金额</label>
+                <input type="number" id="editAmount" step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div class="modal-form-group">
+                <label>分类</label>
+                <select id="editCategory"></select>
+            </div>
+            <div class="modal-form-group">
+                <label>备注</label>
+                <input type="text" id="editNote" placeholder="消费/收入描述">
+            </div>
+            <div class="modal-form-group">
+                <label>日期</label>
+                <input type="date" id="editDate">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeEditModal()">取消</button>
+                <button class="modal-btn save" onclick="saveEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== API 配置 ====================
+        const API_CONFIG = {
+            url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+            key: 'sk-581d84f38bb74e02bac28917623796a6',
+            model: 'qwen-plus'
+        };
+
+        // ==================== 数据管理 ====================
+        const STORAGE_KEY = 'ai_account_book';
+        
+        let transactions = [];
+        let currentChartType = 'pie';
+        let chartInstance = null;
+        let editingId = null;
+
+        // 分类选项
+        const incomeCategories = ['工资', '其他'];
+        const expenseCategories = ['餐饮', '交通', '购物', '娱乐', '住房', '其他'];
+
+        // 初始化：从 localStorage 加载数据
+        function loadTransactions() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    transactions = JSON.parse(stored);
+                } catch(e) {
+                    transactions = [];
+                }
+            }
+            transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        // 保存数据到 localStorage
+        function saveTransactions() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+        }
+
+        // 添加一笔交易
+        function addTransaction(transaction) {
+            transaction.id = Date.now() + Math.random().toString(36).substr(2, 9);
+            transaction.date = transaction.date || new Date().toISOString().split('T')[0];
+            transactions.unshift(transaction);
+            saveTransactions();
+            updateAllUI();
+        }
+
+        // 更新一笔交易
+        function updateTransaction(id, updatedData) {
+            const index = transactions.findIndex(t => t.id === id);
+            if (index !== -1) {
+                transactions[index] = { ...transactions[index], ...updatedData };
+                transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                saveTransactions();
+                updateAllUI();
+            }
+        }
+
+        // 删除一笔交易
+        function deleteTransaction(id) {
+            transactions = transactions.filter(t => t.id !== id);
+            saveTransactions();
+            updateAllUI();
+        }
+
+        // 清空所有交易
+        function clearAllTransactions() {
+            if (transactions.length === 0) return;
+            if (confirm('确定要清空所有记账记录吗？此操作不可恢复。')) {
+                transactions = [];
+                saveTransactions();
+                updateAllUI();
+            }
+        }
+
+        // ==================== UI 更新 ====================
+        function updateAllUI() {
+            updateStats();
+            updateTransactionsList();
+            updateChart();
+        }
+
+        function updateStats() {
+            let totalIncome = 0;
+            let totalExpense = 0;
+            
+            transactions.forEach(t => {
+                if (t.type === 'income') {
+                    totalIncome += t.amount;
+                } else {
+                    totalExpense += t.amount;
+                }
+            });
+
+            const balance = totalIncome - totalExpense;
+
+            document.getElementById('totalIncome').textContent = `¥${totalIncome.toFixed(2)}`;
+            document.getElementById('totalExpense').textContent = `¥${totalExpense.toFixed(2)}`;
+            document.getElementById('balance').textContent = `¥${balance.toFixed(2)}`;
+            document.getElementById('transactionCount').textContent = transactions.length;
+        }
+
+        function updateTransactionsList() {
+            const filterValue = document.getElementById('categoryFilter').value;
+            const container = document.getElementById('transactionsList');
+            
+            let filteredTransactions = transactions;
+            
+            if (filterValue !== 'all') {
+                if (filterValue === '收入') {
+                    filteredTransactions = transactions.filter(t => t.type === 'income');
+                } else if (filterValue === '支出') {
+                    filteredTransactions = transactions.filter(t => t.type === 'expense');
+                } else {
+                    filteredTransactions = transactions.filter(t => t.category === filterValue);
+                }
+            }
+
+            if (filteredTransactions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+                        <div style="font-weight: 600; margin-bottom: 8px; color: #8b6914;">没有符合条件的记录</div>
+                        <div style="font-size: 14px;">试试调整筛选条件吧</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredTransactions.forEach(t => {
+                const icon = t.type === 'income' ? '💰' : getCategoryIcon(t.category);
+                const typeClass = t.type === 'income' ? 'income' : 'expense';
+                const sign = t.type === 'income' ? '+' : '-';
+                
+                html += `
+                    <div class="transaction-item">
+                        <div class="transaction-icon ${typeClass}">${icon}</div>
+                        <div class="transaction-info">
+                            <div class="transaction-title">${t.note || t.category}</div>
+                            <div class="transaction-meta">
+                                <span>${t.date}</span>
+                                <span class="transaction-category">${t.category}</span>
+                            </div>
+                        </div>
+                        <div class="transaction-amount ${typeClass}">${sign}¥${t.amount.toFixed(2)}</div>
+                        <div class="transaction-actions">
+                            <button class="edit-btn" onclick="openEditModal('${t.id}')">✏️</button>
+                            <button class="delete-btn" onclick="deleteTransaction('${t.id}')">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                '餐饮': '🍜', '交通': '🚗', '购物': '🛍️', 
+                '娱乐': '🎮', '住房': '🏠', '工资': '💼', 
+                '其他': '📦'
+            };
+            return icons[category] || '📝';
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            
+            const expenseData = {};
+            transactions.filter(t => t.type === 'expense').forEach(t => {
+                expenseData[t.category] = (expenseData[t.category] || 0) + t.amount;
+            });
+
+            const categories = Object.keys(expenseData);
+            const amounts = Object.values(expenseData);
+            
+            const colors = [
+                '#f59e0b', '#d97706', '#b45309', '#fbbf24', 
+                '#fcd34d', '#eab308', '#ca8a04', '#a16207'
+            ];
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            if (categories.length === 0) {
+                ctx.font = '14px -apple-system, sans-serif';
+                ctx.fillStyle = '#a68b2c';
+                ctx.textAlign = 'center';
+                ctx.fillText('暂无支出数据', ctx.canvas.width/2, ctx.canvas.height/2);
+                return;
+            }
+
+            const config = {
+                type: currentChartType,
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: amounts,
+                        backgroundColor: colors.slice(0, categories.length),
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: currentChartType === 'pie' ? 'right' : 'top',
+                            labels: { 
+                                boxWidth: 12, 
+                                padding: 12,
+                                color: '#8b6914',
+                                font: { weight: '500' }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.raw;
+                                    const total = amounts.reduce((a, b) => a + b, 0);
+                                    const percent = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ¥${value.toFixed(2)} (${percent}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            if (currentChartType === 'bar') {
+                config.options.scales = {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: (value) => '¥' + value, color: '#8b6914' },
+                        grid: { color: 'rgba(251, 191, 36, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#8b6914' },
+                        grid: { display: false }
+                    }
+                };
+                config.options.plugins.legend.display = false;
+            }
+
+            chartInstance = new Chart(ctx, config);
+        }
+
+        // ==================== 编辑功能 ====================
+        function openEditModal(id) {
+            const transaction = transactions.find(t => t.id === id);
+            if (!transaction) return;
+
+            editingId = id;
+            
+            document.getElementById('editType').value = transaction.type;
+            document.getElementById('editAmount').value = transaction.amount;
+            document.getElementById('editNote').value = transaction.note || '';
+            document.getElementById('editDate').value = transaction.date;
+            
+            updateCategorySelect(transaction.type);
+            document.getElementById('editCategory').value = transaction.category;
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            editingId = null;
+        }
+
+        function updateCategorySelect(type) {
+            const select = document.getElementById('editCategory');
+            const categories = type === 'income' ? incomeCategories : expenseCategories;
+            
+            select.innerHTML = categories.map(c => 
+                `<option value="${c}">${getCategoryIcon(c)} ${c}</option>`
+            ).join('');
+        }
+
+        function saveEdit() {
+            if (!editingId) return;
+
+            const type = document.getElementById('editType').value;
+            const amount = parseFloat(document.getElementById('editAmount').value);
+            const category = document.getElementById('editCategory').value;
+            const note = document.getElementById('editNote').value.trim();
+            const date = document.getElementById('editDate').value;
+
+            if (isNaN(amount) || amount < 0) {
+                alert('请输入有效的金额');
+                return;
+            }
+
+            updateTransaction(editingId, { type, amount, category, note, date });
+            closeEditModal();
+        }
+
+        // ==================== AI 解析功能 ====================
+        async function parseWithAI(userInput) {
+            const systemPrompt = `你是一个专业的记账助手。请将用户的自然语言输入解析为 JSON 格式。
+
+规则：
+1. 判断是收入还是支出。收入关键词：工资、奖金、红包、退款、报销、收入、到账。支出关键词：买、花、付、消费、吃饭、打车、购物。
+2. 金额只保留数字，如果没有明确金额，默认0。
+3. 类别从以下选择：
+   - 收入类别：工资、其他
+   - 支出类别：餐饮、交通、购物、娱乐、住房、其他
+4. 备注是对消费/收入的简短描述，不超过15个字。
+5. 日期默认为今天。
+6. 只输出 JSON，不要任何解释。
+
+示例输入："今天午饭吃了个汉堡套餐花了45.5"
+示例输出：{"type":"expense","amount":45.5,"category":"餐饮","note":"汉堡套餐","date":"2026-01-15"}
+
+示例输入："工资到账 15000 元"
+示例输出：{"type":"income","amount":15000,"category":"工资","note":"工资","date":"2026-01-15"}
+
+示例输入："打车去公司花了32"
+示例输出：{"type":"expense","amount":32,"category":"交通","note":"打车","date":"2026-01-15"}`;
+
+            const response = await fetch(API_CONFIG.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_CONFIG.key}`
+                },
+                body: JSON.stringify({
+                    model: API_CONFIG.model,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userInput }
+                    ],
+                    temperature: 0.1,
+                    max_tokens: 200
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`API 请求失败: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const content = data.choices[0].message.content.trim();
+            
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('AI 返回格式异常');
+            }
+
+            const parsed = JSON.parse(jsonMatch[0]);
+            
+            if (!parsed.date) {
+                parsed.date = new Date().toISOString().split('T')[0];
+            }
+            
+            return parsed;
+        }
+
+        // ==================== 事件绑定 ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTransactions();
+            updateAllUI();
+
+            // 监听类型变化，更新分类选项
+            document.getElementById('editType').addEventListener('change', (e) => {
+                updateCategorySelect(e.target.value);
+            });
+
+            // 发送给 AI
+            document.getElementById('sendToAI').addEventListener('click', async () => {
+                const input = document.getElementById('aiInput');
+                const userText = input.value.trim();
+                
+                if (!userText) {
+                    document.getElementById('aiStatus').textContent = '⚠️ 请输入内容';
+                    return;
+                }
+
+                const btn = document.getElementById('sendToAI');
+                const statusEl = document.getElementById('aiStatus');
+                
+                btn.disabled = true;
+                btn.textContent = '🤔 解析中...';
+                statusEl.textContent = 'AI 正在识别...';
+
+                try {
+                    const result = await parseWithAI(userText);
+                    
+                    if (!result.type || !result.amount || !result.category) {
+                        throw new Error('AI 返回数据不完整');
+                    }
+
+                    addTransaction(result);
+                    
+                    input.value = '';
+                    statusEl.textContent = `✅ 已记录：${result.type === 'income' ? '收入' : '支出'} ¥${result.amount.toFixed(2)} (${result.category})`;
+                    
+                    setTimeout(() => {
+                        statusEl.textContent = '';
+                    }, 3000);
+                } catch (error) {
+                    statusEl.textContent = `❌ 识别失败：${error.message}`;
+                    console.error('AI 解析错误:', error);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '↵ 记账';
+                }
+            });
+
+            // 回车发送
+            document.getElementById('aiInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('sendToAI').click();
+                }
+            });
+
+            // 图表切换
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentChartType = btn.dataset.chart;
+                    updateChart();
+                });
+            });
+
+            // 分类筛选
+            document.getElementById('categoryFilter').addEventListener('change', updateTransactionsList);
+
+            // 清空所有记录
+            document.getElementById('clearAllBtn').addEventListener('click', clearAllTransactions);
+
+            // 点击模态框背景关闭
+            document.getElementById('editModal').addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) {
+                    closeEditModal();
+                }
+            });
+        });
+
+        // 全局函数
+        window.deleteTransaction = deleteTransaction;
+        window.openEditModal = openEditModal;
+        window.closeEditModal = closeEditModal;
+        window.saveEdit = saveEdit;
+    </script>
+</body>
+</html>
