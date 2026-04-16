@@ -3,63 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教学反馈生成器 · 教师专用</title>
+    <title>教学反馈 · 学生档案</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📝 教学反馈生成器</h1>
-            <p class="subtitle">上传学生信息和作业照片，AI 帮你生成专业的家长反馈</p>
+            <h1>📚 教学反馈助手</h1>
+            <p class="subtitle">学生档案管理 · 一键生成家长反馈</p>
         </header>
 
         <main>
-            <!-- 信息输入区 -->
-            <section class="input-section">
-                <div class="form-group">
-                    <label for="studentName">👤 学生姓名</label>
-                    <input type="text" id="studentName" placeholder="例：张三" value="">
-                </div>
+            <!-- 操作栏 -->
+            <div class="action-bar">
+                <h2>👥 我的学生</h2>
+                <button class="btn-primary" onclick="openNewStudentModal()">➕ 新建学生档案</button>
+            </div>
 
-                <div class="form-group">
-                    <label for="lessonTopic">📚 本节课主题</label>
-                    <input type="text" id="lessonTopic" placeholder="例：分数的加减法 / 古诗《静夜思》" value="">
-                </div>
+            <!-- 学生列表区域 -->
+            <div id="studentList" class="student-grid">
+                <!-- 动态渲染 -->
+            </div>
 
-                <div class="form-group">
-                    <label for="lessonContent">✏️ 学习内容与完成情况</label>
-                    <textarea id="lessonContent" rows="4" placeholder="例：今天学习了分数的加减法，完成了课本第25-26页的10道练习题。学生整体掌握较好，但在通分环节容易出错..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="photoInput">📸 题目照片（可选，支持多张）</label>
-                    <input type="file" id="photoInput" accept="image/*" multiple>
-                    <small>上传学生作业或题目的照片，AI 会识别图片中的内容</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="extraNote">💬 补充说明（可选）</label>
-                    <input type="text" id="extraNote" placeholder="例：学生今天上课注意力不够集中 / 举手发言很积极">
-                </div>
-
-                <button id="generateBtn" onclick="generateFeedback()">✨ 生成家长反馈</button>
-            </section>
-
-            <!-- 结果展示区 -->
-            <section class="result-section">
-                <div class="result-header">
-                    <h3>📋 生成的反馈</h3>
-                    <button id="copyBtn" onclick="copyFeedback()" style="display:none;">📋 复制</button>
-                </div>
-                <div id="feedbackResult" class="feedback-box">
-                    <span class="placeholder">点击上方按钮，AI 将为你生成专业的家长反馈...</span>
-                </div>
-            </section>
+            <!-- 空状态提示 -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <p>📭 还没有学生档案</p>
+                <p>点击上方按钮，创建第一个学生档案吧</p>
+            </div>
         </main>
 
         <footer>
-            <p>💡 提示：AI 生成的反馈仅供参考，请根据实际情况调整后发送给家长</p>
+            <p>💡 所有数据保存在您的浏览器中，不会上传到服务器</p>
         </footer>
+    </div>
+
+    <!-- 新建学生弹窗 -->
+    <div id="newStudentModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📝 新建学生档案</h3>
+                <button class="close-btn" onclick="closeNewStudentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newName">👤 学生姓名 <span class="required">*</span></label>
+                    <input type="text" id="newName" placeholder="例：张三">
+                </div>
+                <div class="form-group">
+                    <label for="newGrade">📌 年级 <span class="required">*</span></label>
+                    <select id="newGrade">
+                        <option value="">请选择</option>
+                        <option value="一年级">一年级</option>
+                        <option value="二年级">二年级</option>
+                        <option value="三年级">三年级</option>
+                        <option value="四年级">四年级</option>
+                        <option value="五年级">五年级</option>
+                        <option value="六年级">六年级</option>
+                        <option value="初一">初一</option>
+                        <option value="初二">初二</option>
+                        <option value="初三">初三</option>
+                        <option value="高一">高一</option>
+                        <option value="高二">高二</option>
+                        <option value="高三">高三</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📖 科目 <span class="required">*</span> <span style="font-weight: normal; color: #888; font-size: 0.85rem;">（可多选）</span></label>
+                    <div class="subject-tag-container" id="subjectTags">
+                        <span class="subject-tag" data-value="语文" onclick="toggleSubjectTag(this)">语文</span>
+                        <span class="subject-tag" data-value="数学" onclick="toggleSubjectTag(this)">数学</span>
+                        <span class="subject-tag" data-value="英语" onclick="toggleSubjectTag(this)">英语</span>
+                        <span class="subject-tag" data-value="物理" onclick="toggleSubjectTag(this)">物理</span>
+                        <span class="subject-tag" data-value="化学" onclick="toggleSubjectTag(this)">化学</span>
+                        <span class="subject-tag" data-value="生物" onclick="toggleSubjectTag(this)">生物</span>
+                        <span class="subject-tag" data-value="历史" onclick="toggleSubjectTag(this)">历史</span>
+                        <span class="subject-tag" data-value="地理" onclick="toggleSubjectTag(this)">地理</span>
+                        <span class="subject-tag" data-value="政治" onclick="toggleSubjectTag(this)">政治</span>
+                    </div>
+                    <input type="hidden" id="newSubject" value="">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeNewStudentModal()">取消</button>
+                <button class="btn-primary" onclick="createNewStudent()">创建档案</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
