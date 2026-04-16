@@ -36,13 +36,15 @@ function updateStudent(id, updateFn) {
 }
 
 // 创建新学生
-function createStudent(name, grade, subject) {
+function createStudent(name, grade, subject, gender, parent) {
     const students = getAllStudents();
     const newStudent = {
         id: Date.now().toString(),
         name: name,
+        gender: gender,
         grade: grade,
         subject: subject,
+        parent: parent,
         feedbacks: []
     };
     students.push(newStudent);
@@ -94,18 +96,18 @@ if (isHomePage) {
         
         emptyState.style.display = 'none';
         listContainer.innerHTML = students.map(student => `
-            <div class="student-card">
-                <div class="student-card-content" onclick="goToStudent('${student.id}')">
-                    <h3>${student.name}</h3>
-                    <p>${student.grade}</p>
-                    <p class="student-subjects">📖 ${student.subject}</p>
-                    <p class="feedback-count">📋 ${student.feedbacks.length} 条反馈</p>
-                </div>
-                <button class="delete-student-btn" onclick="deleteStudentConfirm('${student.id}', '${student.name}')" title="删除学生">
-                    🗑️
-                </button>
-            </div>
-        `).join('');
+    <div class="student-card">
+        <div class="student-card-content" onclick="goToStudent('${student.id}')">
+            <h3>${student.name} ${student.gender === '男' ? '👦' : '👧'}</h3>
+            <p>${student.grade}</p>
+            <p class="student-subjects">📖 ${student.subject}</p>
+            <p class="feedback-count">📋 ${student.feedbacks.length} 条反馈</p>
+        </div>
+        <button class="delete-student-btn" onclick="deleteStudentConfirm('${student.id}', '${student.name}')" title="删除学生">
+            🗑️
+        </button>
+    </div>
+`).join('');
     }
     
     // 确认删除学生
@@ -122,18 +124,24 @@ if (isHomePage) {
         window.location.href = `student.html?id=${studentId}`;
     };
     
-    // 打开新建弹窗
     window.openNewStudentModal = function() {
-        document.getElementById('newStudentModal').style.display = 'flex';
-        document.getElementById('newName').value = '';
-        document.getElementById('newGrade').value = '';
-        document.getElementById('newSubject').value = '';
-        
-        // 清空所有标签的选中状态
-        document.querySelectorAll('.subject-tag').forEach(tag => {
-            tag.classList.remove('selected');
-        });
-    };
+    document.getElementById('newStudentModal').style.display = 'flex';
+    document.getElementById('newName').value = '';
+    document.getElementById('newGrade').value = '';
+    document.getElementById('newSubject').value = '';
+    
+    // 清空所有标签的选中状态
+    document.querySelectorAll('.subject-tag').forEach(tag => {
+        tag.classList.remove('selected');
+    });
+    
+    // 👇👇👇 清空性别和家长选择 👇👇👇
+    const genderRadios = document.querySelectorAll('input[name="gender"]');
+    genderRadios.forEach(radio => radio.checked = false);
+    
+    const parentRadios = document.querySelectorAll('input[name="parent"]');
+    parentRadios.forEach(radio => radio.checked = false);
+};
     
     // 关闭新建弹窗
     window.closeNewStudentModal = function() {
@@ -141,24 +149,30 @@ if (isHomePage) {
     };
     
     // 创建新学生
-    window.createNewStudent = function() {
-        const name = document.getElementById('newName').value.trim();
-        const grade = document.getElementById('newGrade').value;
-        const subject = document.getElementById('newSubject').value;
-        
-        if (!name || !grade || !subject) {
-            alert('请填写完整信息（至少选择一个科目）');
-            return;
-        }
-        
-        const newStudent = createStudent(name, grade, subject);
-        closeNewStudentModal();
-        renderStudentList();
-        
-        if (confirm(`学生"${name}"创建成功！是否立即进入？`)) {
-            goToStudent(newStudent.id);
-        }
-    };
+window.createNewStudent = function() {
+    const name = document.getElementById('newName').value.trim();
+    const grade = document.getElementById('newGrade').value;
+    const subject = document.getElementById('newSubject').value;
+    
+    // 👇👇👇 获取性别和家长选择 👇👇👇
+    const genderRadio = document.querySelector('input[name="gender"]:checked');
+    const parentRadio = document.querySelector('input[name="parent"]:checked');
+    const gender = genderRadio ? genderRadio.value : '';
+    const parent = parentRadio ? parentRadio.value : '';
+    
+    if (!name || !grade || !subject || !gender || !parent) {
+        alert('请填写完整信息（姓名、年级、科目、性别、发送对象）');
+        return;
+    }
+    
+    const newStudent = createStudent(name, grade, subject, gender, parent);
+    closeNewStudentModal();
+    renderStudentList();
+    
+    if (confirm(`学生"${name}"创建成功！是否立即进入？`)) {
+        goToStudent(newStudent.id);
+    }
+};
     
     // 初始化
     renderStudentList();
@@ -190,9 +204,11 @@ if (isStudentPage) {
         }
         
         document.getElementById('displayName').textContent = currentStudent.name;
-        document.getElementById('displayGrade').textContent = currentStudent.grade;
-        document.getElementById('displaySubject').textContent = currentStudent.subject;
-        document.getElementById('pageTitle').textContent = `📖 ${currentStudent.name}的反馈记录`;
+    document.getElementById('displayGender').textContent = currentStudent.gender || '-';
+    document.getElementById('displayGrade').textContent = currentStudent.grade;
+    document.getElementById('displaySubject').textContent = currentStudent.subject;
+    document.getElementById('displayParent').textContent = currentStudent.parent || '-';
+    document.getElementById('pageTitle').textContent = `📖 ${currentStudent.name}的反馈记录`;
         
         renderFeedbackHistory();
         document.getElementById('photoInput').addEventListener('change', handlePhotoUpload);
@@ -338,19 +354,20 @@ if (isStudentPage) {
         try {
             let prompt = `你是一位专业的${currentStudent.grade}${currentStudent.subject}老师，说话温暖、接地气。
 
-请根据以下信息，写一段给${currentStudent.name}家长的课后反馈：
+请根据以下信息，写一段给${currentStudent.name}${currentStudent.parent}家长的课后反馈：
 
-【学生】${currentStudent.name}（${currentStudent.grade}）
+【学生】${currentStudent.name}（${currentStudent.grade}，${currentStudent.gender}生）
 【本节课主题】${lessonTopic}
 【学习内容与完成情况】${lessonContent}`;
 
             if (extraNote) {
                 prompt += `\n【补充说明】${extraNote}`;
             }
-
+const salutation = currentStudent.parent === '爸爸' ? '爸爸' : 
+                   currentStudent.parent === '妈妈' ? '妈妈' : '家长';
             prompt += `\n\n要求：
-1. 开头称呼"${currentStudent.name}妈妈好"
-2. 结合${currentStudent.grade}的学情特点来分析
+1. 开头称呼"${currentStudent.name}${salutation}好"
+2. 结合${currentStudent.grade}的学情特点和${currentStudent.gender}生的学习特点来分析
 3. 优点要具体，不足要委婉，建议要可操作
 4. 语气亲切自然，但是还是要得体且专业
 5. 直接输出内容，字数参考300字左右
@@ -361,15 +378,15 @@ if (isStudentPage) {
 然后又花了十五分钟左右做了两道数学列方程进阶题，她容易对题目理解不到位导致找不到等量关系，我还是会多给她找类似的等量关系让她理解记忆（比如利润=售价-成本、路程=速度×时间）`;
 
             const messages = [
-                {
-                    role: 'system',
-                    content: `你是一位专业的${currentStudent.grade}${currentStudent.subject}老师，擅长撰写得体的家长沟通反馈。`
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ];
+    {
+        role: 'system',
+        content: `你是一位专业的${currentStudent.grade}${currentStudent.subject}老师，擅长撰写得体的家长沟通反馈。注意学生的性别是${currentStudent.gender}，家长称呼是${currentStudent.parent}。`
+    },
+    {
+        role: 'user',
+        content: prompt
+    }
+];
             
             if (imageBase64List.length > 0) {
                 const imageContent = imageBase64List.map(base64 => ({
