@@ -104,6 +104,21 @@
             margin-bottom: 24px;
         }
 
+        .monthly-summary-wrapper {
+            margin-bottom: 24px;
+        }
+
+        .monthly-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .monthly-summary-wrapper .section-header {
+            align-items: center;
+        }
+
         /* 图表卡片 */
         .chart-card {
             background: linear-gradient(135deg, #fff9e6 0%, #fef3c7 100%);
@@ -527,12 +542,95 @@
         }
 
         /* 响应式 */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
             .main-content {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .app-container {
+                width: 100%;
+                padding: 0;
+            }
+            .header h1 {
+                font-size: 24px;
+                gap: 6px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-card,
+            .chart-card,
+            .ai-card,
+            .transactions-section {
+                padding: 18px;
+            }
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .chart-container {
+                height: 220px;
+            }
+            .ai-input-area {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .ai-input-area input,
+            .ai-input-area button {
+                width: 100%;
+            }
+            .filter-select,
+            .delete-all-btn {
+                width: 100%;
+            }
+            .section-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .transaction-item {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .transaction-info {
+                width: 100%;
+            }
+            .transaction-meta {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .transaction-amount,
+            .transaction-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .transaction-amount {
+                text-align: left;
+            }
+            .transaction-actions {
+                margin-left: 0;
+            }
+            .modal {
+                width: 100%;
+                max-width: 100%;
+                margin: 0 12px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .monthly-summary-grid {
+                grid-template-columns: 1fr;
+            }
+            #monthFilter {
+                width: 100%;
             }
         }
     </style>
@@ -565,6 +663,27 @@
             <div class="stat-card">
                 <div class="stat-label">📝 交易笔数</div>
                 <div class="stat-value count" id="transactionCount">0</div>
+            </div>
+        </div>
+
+        <div class="monthly-summary-wrapper">
+            <div class="section-header">
+                <h2>📅 每月净收入 / 净支出</h2>
+                <select class="filter-select" id="monthFilter"></select>
+            </div>
+            <div class="monthly-summary-grid">
+                <div class="stat-card">
+                    <div class="stat-label">本月收入</div>
+                    <div class="stat-value income" id="monthIncome">¥0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">本月支出</div>
+                    <div class="stat-value expense" id="monthExpense">¥0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">本月结余</div>
+                    <div class="stat-value balance" id="monthBalance">¥0.00</div>
+                </div>
             </div>
         </div>
 
@@ -740,6 +859,8 @@
             updateStats();
             updateTransactionsList();
             updateChart();
+            updateMonthFilter();
+            updateMonthlySummary();
         }
 
         function updateStats() {
@@ -760,6 +881,53 @@
             document.getElementById('totalExpense').textContent = `¥${totalExpense.toFixed(2)}`;
             document.getElementById('balance').textContent = `¥${balance.toFixed(2)}`;
             document.getElementById('transactionCount').textContent = transactions.length;
+        }
+
+        function getAvailableMonths() {
+            const months = new Set();
+            transactions.forEach(t => {
+                if (t.date) {
+                    months.add(t.date.slice(0, 7));
+                }
+            });
+            const todayMonth = new Date().toISOString().slice(0, 7);
+            months.add(todayMonth);
+            return Array.from(months).sort((a, b) => b.localeCompare(a));
+        }
+
+        function updateMonthFilter() {
+            const monthFilter = document.getElementById('monthFilter');
+            const selected = monthFilter.value || new Date().toISOString().slice(0, 7);
+            const months = getAvailableMonths();
+
+            monthFilter.innerHTML = months.map(month => {
+                return `<option value="${month}" ${month === selected ? 'selected' : ''}>${month}</option>`;
+            }).join('');
+
+            if (!months.includes(selected)) {
+                monthFilter.value = months[0] || selected;
+            }
+        }
+
+        function updateMonthlySummary() {
+            const month = document.getElementById('monthFilter').value || new Date().toISOString().slice(0, 7);
+            let monthIncome = 0;
+            let monthExpense = 0;
+
+            transactions.forEach(t => {
+                if (t.date && t.date.slice(0, 7) === month) {
+                    if (t.type === 'income') {
+                        monthIncome += t.amount;
+                    } else {
+                        monthExpense += t.amount;
+                    }
+                }
+            });
+
+            const monthBalance = monthIncome - monthExpense;
+            document.getElementById('monthIncome').textContent = `¥${monthIncome.toFixed(2)}`;
+            document.getElementById('monthExpense').textContent = `¥${monthExpense.toFixed(2)}`;
+            document.getElementById('monthBalance').textContent = `¥${monthBalance.toFixed(2)}`;
         }
 
         function updateTransactionsList() {
@@ -961,6 +1129,7 @@
 
         // ==================== AI 解析功能 ====================
         async function parseWithAI(userInput) {
+            const today = new Date().toISOString().split('T')[0];
             const systemPrompt = `你是一个专业的记账助手。请将用户的自然语言输入解析为 JSON 格式。
 
 规则：
@@ -970,17 +1139,17 @@
    - 收入类别：工资、其他
    - 支出类别：餐饮、交通、购物、娱乐、住房、其他
 4. 备注是对消费/收入的简短描述，不超过15个字。
-5. 日期默认为今天。
-6. 只输出 JSON，不要任何解释。
+5. 日期默认为今天，如果没有明确日期请输入今天日期。
+6. 只输出 JSON，不要任何解释。不要输出示例中的固定日期。
 
 示例输入："今天午饭吃了个汉堡套餐花了45.5"
-示例输出：{"type":"expense","amount":45.5,"category":"餐饮","note":"汉堡套餐","date":"2026-01-15"}
+示例输出：{"type":"expense","amount":45.5,"category":"餐饮","note":"汉堡套餐","date":"${today}"}
 
 示例输入："工资到账 15000 元"
-示例输出：{"type":"income","amount":15000,"category":"工资","note":"工资","date":"2026-01-15"}
+示例输出：{"type":"income","amount":15000,"category":"工资","note":"工资","date":"${today}"}
 
 示例输入："打车去公司花了32"
-示例输出：{"type":"expense","amount":32,"category":"交通","note":"打车","date":"2026-01-15"}`;
+示例输出：{"type":"expense","amount":32,"category":"交通","note":"打车","date":"${today}"}`;
 
             const response = await fetch(API_CONFIG.url, {
                 method: 'POST',
@@ -1013,9 +1182,8 @@
             }
 
             const parsed = JSON.parse(jsonMatch[0]);
-            
-            if (!parsed.date) {
-                parsed.date = new Date().toISOString().split('T')[0];
+            if (!parsed.date || isNaN(new Date(parsed.date).getTime())) {
+                parsed.date = today;
             }
             
             return parsed;
@@ -1091,6 +1259,9 @@
 
             // 分类筛选
             document.getElementById('categoryFilter').addEventListener('change', updateTransactionsList);
+            document.getElementById('monthFilter').addEventListener('change', () => {
+                updateMonthlySummary();
+            });
 
             // 清空所有记录
             document.getElementById('clearAllBtn').addEventListener('click', clearAllTransactions);
