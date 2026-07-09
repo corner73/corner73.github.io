@@ -3,15 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>成绩记录</title>
+<title>成绩记录（总分+单科班级/年级排名）</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system}
 body{background:#f0f7f4;color:#222;padding-bottom:70px;min-height:100vh}
-/*底部导航*/
 .tab-bar{position:fixed;bottom:0;left:0;right:0;height:60px;background:#fff;display:flex;border-top:1px solid #ddd}
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;color:#888;cursor:pointer}
 .tab-item.active{color:#28a78c}
-/*页面容器*/
 .page{padding:16px;display:none}
 .page.active{display:block}
 .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #00000010}
@@ -21,65 +19,81 @@ input,select{width:100%;padding:12px;border:1px solid #cce8df;border-radius:8px;
 .btn-primary{background:#28a78c;color:#fff}
 .btn-danger{background:#ee6b6b;color:#fff}
 .btn-export{background:#4285f4;color:#fff}
-.subject-item{display:flex;gap:8px;align-items:center}
-.subject-item input{flex:1}
+.subject-item{display:grid;grid-template-columns:1fr 80px 80px 80px 40px;gap:6px;align-items:center;margin:8px 0}
 .sub-del{width:40px;background:#eee;color:#f44336;border:none;padding:10px;border-radius:6px;cursor:pointer}
 .select-subject{margin-bottom:20px}
 .empty-tip{text-align:center;padding:40px 0;color:#777}
 #chartBox{width:100%;height:320px;border:1px solid #e0ece8;border-radius:8px;margin-top:10px}
+.up{color:#00b359;font-weight:bold}
+.down{color:#f44336;font-weight:bold}
+.same{color:#666}
+.sub-block{background:#f8fbf9;padding:10px;border-radius:8px;margin:6px 0}
 </style>
 </head>
 <body>
 <div id="app">
-    <!--录入页-->
+    <!--录入页：总分排名 + 每科独立班/级排名输入-->
     <div class="page" id="page0">
         <div class="title">录入本次考试成绩</div>
         <div class="card">
             <input id="examName" placeholder="考试名称，如：高一第一次月考">
             <input type="date" id="examDate">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <input type="number" id="classRankInput" placeholder="总分班级排名">
+                <input type="number" id="gradeRankInput" placeholder="总分年级排名">
+            </div>
+            <div style="font-size:14px;color:#666;margin:4px 0">下方填写每科：科目名 / 分数 / 单科班排 / 单科级排</div>
             <div id="subjectWrap">
                 <div class="subject-item">
                     <input class="subName" placeholder="科目名" value="语文">
                     <input type="number" class="subScore" placeholder="分数">
+                    <input type="number" class="subClassRank" placeholder="班排">
+                    <input type="number" class="subGradeRank" placeholder="级排">
                     <button class="sub-del" onclick="delSub(this)">-</button>
                 </div>
                 <div class="subject-item">
                     <input class="subName" placeholder="科目名" value="数学">
                     <input type="number" class="subScore" placeholder="分数">
+                    <input type="number" class="subClassRank" placeholder="班排">
+                    <input type="number" class="subGradeRank" placeholder="级排">
                     <button class="sub-del" onclick="delSub(this)">-</button>
                 </div>
                 <div class="subject-item">
                     <input class="subName" placeholder="科目名" value="英语">
                     <input type="number" class="subScore" placeholder="分数">
+                    <input type="number" class="subClassRank" placeholder="班排">
+                    <input type="number" class="subGradeRank" placeholder="级排">
                     <button class="sub-del" onclick="delSub(this)">-</button>
                 </div>
             </div>
-            <button class="btn" style="background:#e8f5f1;color:#28a78c" onclick="addSubject()">+ 添加科目</button>
-            <button class="btn btn-primary" onclick="saveExam()">保存本次成绩</button>
+            <button class="btn" style="background:#e8f5f1;color:#28a78c" onclick="addSubject()">+ 添加科目行</button>
+            <button class="btn btn-primary" onclick="saveExam()">保存本次全部成绩</button>
         </div>
     </div>
 
-    <!--成绩列表页-->
+    <!--成绩列表：总分排名+单科详细排名进退步-->
     <div class="page" id="page1">
         <div class="title">全部考试记录</div>
-        <button class="btn btn-export" onclick="exportCSV()">导出全部成绩（Excel表格）</button>
+        <button class="btn btn-export" onclick="exportCSV()">导出完整成绩（总分+单科所有排名）</button>
         <div id="recordWrap"></div>
     </div>
 
-    <!--图表分析页（单科单选）-->
+    <!--趋势图表：总分/总分班排/总分级排/单科分数/单科班排/单科级排全部可选-->
     <div class="page" id="page2">
-        <div class="title">成绩趋势分析</div>
+        <div class="title">分数&排名趋势图表</div>
         <div class="card select-subject">
-            <label>选择查看项目：</label>
+            <label>选择查看数据：</label>
             <select id="chartSelect" onchange="drawChart()">
-                <option value="total">总分</option>
+                <option value="totalScore">总分</option>
+                <option value="totalClassRank">总分班级排名</option>
+                <option value="totalGradeRank">总分年级排名</option>
             </select>
         </div>
         <div id="chartTip" class="empty-tip">至少录入2次考试，才能生成趋势图表</div>
         <canvas id="chartBox"></canvas>
     </div>
 
-    <!--底部导航栏-->
+    <!--底部导航-->
     <div class="tab-bar">
         <div class="tab-item active" onclick="switchTab(0)">录入成绩</div>
         <div class="tab-item" onclick="switchTab(1)">成绩列表</div>
@@ -88,7 +102,6 @@ input,select{width:100%;padding:12px;border:1px solid #cce8df;border-radius:8px;
 </div>
 
 <script>
-//全局数据
 let examRecords = JSON.parse(localStorage.getItem("scoreData")) || [];
 const chartCanvas = document.getElementById("chartBox");
 const ctx = chartCanvas.getContext("2d");
@@ -97,69 +110,110 @@ const ctx = chartCanvas.getContext("2d");
 function switchTab(num){
     document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
     document.getElementById("page"+num).classList.add("active");
-    document.querySelectorAll(".tab-item").forEach((t,i)=>{
-        t.classList.toggle("active",i===num);
-    })
+    document.querySelectorAll(".tab-item").forEach((t,i)=>t.classList.toggle("active",i===num));
     if(num===1)renderRecord();
     if(num===2)refreshSelect();
 }
 
-//新增科目输入框
+//新增科目行
 function addSubject(){
     const wrap = document.getElementById("subjectWrap");
     const div = document.createElement("div");
     div.className = "subject-item";
-    div.innerHTML = `<input class="subName" placeholder="科目名"><input type="number" class="subScore" placeholder="分数"><button class="sub-del" onclick="delSub(this)">-</button>`;
+    div.innerHTML = `<input class="subName" placeholder="科目名"><input type="number" class="subScore" placeholder="分数"><input type="number" class="subClassRank" placeholder="班排"><input type="number" class="subGradeRank" placeholder="级排"><button class="sub-del" onclick="delSub(this)">-</button>`;
     wrap.appendChild(div);
 }
-//删除科目输入框
+//删除科目行
 function delSub(btn){
-    const parent = btn.parentElement;
+    const p = btn.parentElement;
     const wrap = document.getElementById("subjectWrap");
-    if(wrap.children.length>1)parent.remove();
-    else alert("至少保留一个科目输入框");
+    if(wrap.children.length>1)p.remove();
+    else alert("至少保留一科");
 }
 
-//保存考试记录
+//保存考试，自动计算总分进退步、每科单科进退步
 function saveExam(){
     const name = document.getElementById("examName").value.trim();
     const date = document.getElementById("examDate").value;
-    const subNames = document.querySelectorAll(".subName");
-    const subScores = document.querySelectorAll(".subScore");
-    const subjects = [];
-    if(!name||!date)return alert("请填写考试名称与日期");
-    for(let i=0;i<subNames.length;i++){
-        const sName = subNames[i].value.trim();
-        const sScore = Number(subScores[i].value);
-        if(sName&&!isNaN(sScore)&&sScore>=0)subjects.push({name:sName,score:sScore});
+    const totalClassRank = Number(document.getElementById("classRankInput").value);
+    const totalGradeRank = Number(document.getElementById("gradeRankInput").value);
+    if(!name||!date||isNaN(totalClassRank)||totalClassRank<=0||isNaN(totalGradeRank)||totalGradeRank<=0){
+        return alert("请填写考试名称、日期、有效总分班级/年级排名");
     }
-    if(subjects.length===0)return alert("请填写至少一门有效科目成绩");
-    examRecords.push({name,date,subjects});
+    //读取所有科目
+    const nameEls = document.querySelectorAll(".subName");
+    const scoreEls = document.querySelectorAll(".subScore");
+    const subCREls = document.querySelectorAll(".subClassRank");
+    const subGREls = document.querySelectorAll(".subGradeRank");
+    const subjects = [];
+    for(let i=0;i<nameEls.length;i++){
+        const sName = nameEls[i].value.trim();
+        const sScore = Number(scoreEls[i].value);
+        const sCR = Number(subCREls[i].value);
+        const sGR = Number(subGREls[i].value);
+        if(sName&&!isNaN(sScore)&&sScore>=0&&!isNaN(sCR)&&sCR>0&&!isNaN(sGR)&&sGR>0){
+            subjects.push({name:sName,score:sScore,classRank:sCR,gradeRank:sGR,classDiff:null,gradeDiff:null});
+        }
+    }
+    if(subjects.length===0)return alert("至少填写一科完整信息：科目名、分数、单科班排、单科级排");
+    //对比上一条记录，计算总分和单科进退步
+    let totalClassDiff = null, totalGradeDiff = null;
+    if(examRecords.length>0){
+        const lastExam = examRecords[examRecords.length-1];
+        //总分进退步
+        totalClassDiff = lastExam.totalClassRank - totalClassRank;
+        totalGradeDiff = lastExam.totalGradeRank - totalGradeRank;
+        //单科匹配计算进退步
+        const lastSubMap = {};
+        lastExam.subjects.forEach(s=>lastSubMap[s.name]={cr:s.classRank,gr:s.gradeRank});
+        subjects.forEach(s=>{
+            const last = lastSubMap[s.name];
+            if(last){
+                s.classDiff = last.cr - s.classRank;
+                s.gradeDiff = last.gr - s.gradeRank;
+            }
+        })
+    }
+    //存入记录
+    examRecords.push({
+        name,date,
+        totalClassRank,totalClassDiff,
+        totalGradeRank,totalGradeDiff,
+        subjects
+    });
     localStorage.setItem("scoreData",JSON.stringify(examRecords));
     //清空输入
     document.getElementById("examName").value="";
     document.getElementById("examDate").value="";
+    document.getElementById("classRankInput").value="";
+    document.getElementById("gradeRankInput").value="";
     document.getElementById("subjectWrap").innerHTML=`
         <div class="subject-item">
             <input class="subName" placeholder="科目名" value="语文">
             <input type="number" class="subScore" placeholder="分数">
+            <input type="number" class="subClassRank" placeholder="班排">
+            <input type="number" class="subGradeRank" placeholder="级排">
             <button class="sub-del" onclick="delSub(this)">-</button>
         </div>
         <div class="subject-item">
             <input class="subName" placeholder="科目名" value="数学">
             <input type="number" class="subScore" placeholder="分数">
+            <input type="number" class="subClassRank" placeholder="班排">
+            <input type="number" class="subGradeRank" placeholder="级排">
             <button class="sub-del" onclick="delSub(this)">-</button>
         </div>
         <div class="subject-item">
             <input class="subName" placeholder="科目名" value="英语">
             <input type="number" class="subScore" placeholder="分数">
+            <input type="number" class="subClassRank" placeholder="班排">
+            <input type="number" class="subGradeRank" placeholder="级排">
             <button class="sub-del" onclick="delSub(this)">-</button>
         </div>
     `;
-    alert("保存成功！");
+    alert("保存成功！已自动计算总分及全部单科的班级、年级进退步");
 }
 
-//渲染成绩列表
+//渲染全部考试记录
 function renderRecord(){
     const wrap = document.getElementById("recordWrap");
     if(examRecords.length===0){
@@ -168,154 +222,224 @@ function renderRecord(){
     }
     let html = "";
     examRecords.forEach((exam,idx)=>{
-        let total = exam.subjects.reduce((sum,s)=>sum+s.score,0);
+        const total = exam.subjects.reduce((sum,s)=>sum+s.score,0);
+        //总分排名文字
+        let totalCRText = `总分班排：${exam.totalClassRank}`;
+        if(exam.totalClassDiff!==null){
+            if(exam.totalClassDiff>0)totalCRText += `<span class="up">↑进步${exam.totalClassDiff}名</span>`;
+            else if(exam.totalClassDiff<0)totalCRText += `<span class="down">↓退步${Math.abs(exam.totalClassDiff)}名</span>`;
+            else totalCRText += `<span class="same">持平</span>`;
+        }
+        let totalGRText = `总分级排：${exam.totalGradeRank}`;
+        if(exam.totalGradeDiff!==null){
+            if(exam.totalGradeDiff>0)totalGRText += `<span class="up">↑进步${exam.totalGradeDiff}名</span>`;
+            else if(exam.totalGradeDiff<0)totalGRText += `<span class="down">↓退步${Math.abs(exam.totalGradeDiff)}名</span>`;
+            else totalGRText += `<span class="same">持平</span>`;
+        }
+        //单科详情
         let subHtml = "";
-        exam.subjects.forEach(s=>subHtml+=`<div style="font-size:14px;color:#555">${s.name}：${s.score}分</div>`);
+        exam.subjects.forEach(s=>{
+            let crTxt = `单科班排${s.classRank}`;
+            if(s.classDiff!==null){
+                if(s.classDiff>0)crTxt+=`<span class="up">↑${s.classDiff}</span>`;
+                else if(s.classDiff<0)crTxt+=`<span class="down">↓${Math.abs(s.classDiff)}</span>`;
+                else crTxt+=`<span class="same">持平</span>`;
+            }
+            let grTxt = `单科级排${s.gradeRank}`;
+            if(s.gradeDiff!==null){
+                if(s.gradeDiff>0)grTxt+=`<span class="up">↑${s.gradeDiff}</span>`;
+                else if(s.gradeDiff<0)grTxt+=`<span class="down">↓${Math.abs(s.gradeDiff)}</span>`;
+                else grTxt+=`<span class="same">持平</span>`;
+            }
+            subHtml += `
+            <div class="sub-block">
+                <div style="font-weight:600">${s.name}：${s.score}分</div>
+                <div style="font-size:13px;margin-top:4px">${crTxt} | ${grTxt}</div>
+            </div>`;
+        })
         html += `
         <div class="card">
             <div style="font-weight:600">${exam.name} · ${exam.date}</div>
-            <div style="margin:8px 0">总分：${total}</div>
+            <div style="margin:6px 0">总分数：${total}</div>
+            <div style="margin:4px 0">${totalCRText}</div>
+            <div style="margin:4px 0">${totalGRText}</div>
+            <div style="margin-top:8px;font-size:14px;font-weight:500">各科详情：</div>
             ${subHtml}
-            <button class="btn btn-danger" style="margin-top:10px" onclick="delExam(${idx})">删除本条记录</button>
+            <button class="btn btn-danger" onclick="delExam(${idx})">删除本条记录</button>
         </div>`;
     })
     wrap.innerHTML = html;
 }
 
-//删除单条考试
+//删除记录，重新计算所有进退步
 function delExam(idx){
-    if(!confirm("确定删除这条考试记录？"))return;
+    if(!confirm("删除后所有排名进退步会重新计算，确认？"))return;
     examRecords.splice(idx,1);
+    recalcAllDiff();
     localStorage.setItem("scoreData",JSON.stringify(examRecords));
     renderRecord();
     refreshSelect();
 }
+//全局重算所有总分、单科进退步
+function recalcAllDiff(){
+    for(let i=0;i<examRecords.length;i++){
+        if(i===0){
+            examRecords[i].totalClassDiff=null;
+            examRecords[i].totalGradeDiff=null;
+            examRecords[i].subjects.forEach(s=>{s.classDiff=null;s.gradeDiff=null;})
+            continue;
+        }
+        const prev = examRecords[i-1];
+        const curr = examRecords[i];
+        //总分差值
+        curr.totalClassDiff = prev.totalClassRank - curr.totalClassRank;
+        curr.totalGradeDiff = prev.totalGradeRank - curr.totalGradeRank;
+        //单科匹配差值
+        const prevSubMap = {};
+        prev.subjects.forEach(s=>prevSubMap[s.name]={cr:s.classRank,gr:s.gradeRank});
+        curr.subjects.forEach(s=>{
+            const ps = prevSubMap[s.name];
+            if(ps){
+                s.classDiff = ps.cr - s.classRank;
+                s.gradeDiff = ps.gr - s.gradeRank;
+            }else{
+                s.classDiff=null;s.gradeDiff=null;
+            }
+        })
+    }
+}
 
-//刷新图表下拉选择框
+//刷新图表下拉选项，自动添加所有单科分数/单科班排/单科级排
 function refreshSelect(){
     const sel = document.getElementById("chartSelect");
     const tip = document.getElementById("chartTip");
     if(examRecords.length<2){
-        tip.style.display="block";
-        chartCanvas.style.display="none";
-        sel.innerHTML = `<option value="total">总分</option>`;
+        tip.style.display="block";chartCanvas.style.display="none";
+        sel.innerHTML = `<option value="totalScore">总分</option><option value="totalClassRank">总分班级排名</option><option value="totalGradeRank">总分年级排名</option>`;
         return;
     }
-    tip.style.display="none";
-    chartCanvas.style.display="block";
-    //提取全部科目
+    tip.style.display="none";chartCanvas.style.display="block";
+    //收集所有科目
     const subSet = new Set();
     examRecords.forEach(e=>e.subjects.forEach(s=>subSet.add(s.name)));
     const subList = Array.from(subSet);
-    let optHtml = `<option value="total">总分</option>`;
-    subList.forEach(name=>optHtml+=`<option value="${name}">${name}</option>`);
-    sel.innerHTML = optHtml;
+    let opt = `<option value="totalScore">总分</option><option value="totalClassRank">总分班级排名</option><option value="totalGradeRank">总分年级排名</option>`;
+    subList.forEach(name=>{
+        opt += `<option value="subScore_${name}">${name} 单科分数</option>`;
+        opt += `<option value="subCR_${name}">${name} 单科班级排名</option>`;
+        opt += `<option value="subGR_${name}">${name} 单科年级排名</option>`;
+    })
+    sel.innerHTML = opt;
     drawChart();
 }
 
-//绘制单科目/总分折线图（原生Canvas，无外部依赖）
+//绘制折线图，兼容所有数据类型
 function drawChart(){
     const target = document.getElementById("chartSelect").value;
-    const width = chartCanvas.clientWidth;
-    const height = chartCanvas.clientHeight;
-    chartCanvas.width = width;
-    chartCanvas.height = height;
-    ctx.clearRect(0,0,width,height);
-    //组装图表数据
+    const w = chartCanvas.clientWidth;
+    const h = chartCanvas.clientHeight;
+    chartCanvas.width=w;chartCanvas.height=h;
+    ctx.clearRect(0,0,w,h);
     const chartData = [];
     examRecords.forEach(exam=>{
-        let val;
-        if(target==="total"){
+        let val=null;
+        if(target==="totalScore"){
             val = exam.subjects.reduce((sum,s)=>sum+s.score,0);
-        }else{
-            const find = exam.subjects.find(s=>s.name===target);
-            val = find ? find.score : null;
+        }else if(target==="totalClassRank"){
+            val=exam.totalClassRank;
+        }else if(target==="totalGradeRank"){
+            val=exam.totalGradeRank;
+        }else if(target.startsWith("subScore_")){
+            const subName = target.replace("subScore_","");
+            const s = exam.subjects.find(x=>x.name===subName);
+            val = s?s.score:null;
+        }else if(target.startsWith("subCR_")){
+            const subName = target.replace("subCR_","");
+            const s = exam.subjects.find(x=>x.name===subName);
+            val = s?s.classRank:null;
+        }else if(target.startsWith("subGR_")){
+            const subName = target.replace("subGR_","");
+            const s = exam.subjects.find(x=>x.name===subName);
+            val = s?s.gradeRank:null;
         }
         chartData.push({label:exam.name,value:val});
     })
-    //过滤无分数点
-    const validData = chartData.filter(d=>d.value!==null);
-    if(validData.length<2)return;
-    //坐标边距
-    const padX = 40;
-    const padY = 40;
-    const innerW = width - padX*2;
-    const innerH = height - padY*2;
-    //分数最大最小值
-    const values = validData.map(d=>d.value);
-    const minVal = Math.floor(Math.min(...values)/10)*10;
-    const maxVal = Math.ceil(Math.max(...values)/10)*10;
-    const range = maxVal - minVal || 100;
-    //绘制网格线
-    ctx.strokeStyle="#e0ece8";
-    ctx.lineWidth=1;
-    //Y轴刻度
+    const valid = chartData.filter(d=>d.value!==null);
+    if(valid.length<2)return;
+    const padX=40,padY=40;
+    const innerW=w-padX*2,innerH=h-padY*2;
+    const vals = valid.map(d=>d.value);
+    let minV = Math.floor(Math.min(...vals)/10)*10;
+    let maxV = Math.ceil(Math.max(...vals)/10)*10;
+    const range = maxV-minV||100;
+    //网格
+    ctx.strokeStyle="#e0ece8";ctx.lineWidth=1;
     for(let i=0;i<=5;i++){
-        const y = padY + innerH*(1 - i/5);
-        const val = minVal + range*(i/5);
-        ctx.beginPath();
-        ctx.moveTo(padX,y);
-        ctx.lineTo(width-padX,y);
-        ctx.stroke();
-        ctx.fillStyle="#666";
-        ctx.font="11px system-ui";
-        ctx.fillText(val.toString(),5,y+4);
+        const y = padY + innerH*(1-i/5);
+        ctx.beginPath();ctx.moveTo(padX,y);ctx.lineTo(w-padX,y);ctx.stroke();
+        ctx.fillStyle="#666";ctx.font="11px system-ui";
+        ctx.fillText(String(minV+range*(i/5)),5,y+4);
     }
-    //X轴标签
-    const stepX = innerW/(validData.length-1);
-    validData.forEach((d,i)=>{
-        const x = padX + stepX*i;
-        ctx.fillText(d.label.substring(0,4),x-18,height-10);
+    //X轴文字
+    const stepX = innerW/(valid.length-1);
+    valid.forEach((d,i)=>{
+        const x = padX+stepX*i;
+        ctx.fillText(d.label.slice(0,4),x-18,h-10);
     })
-    //绘制折线
-    ctx.strokeStyle="#28a78c";
-    ctx.lineWidth=3;
-    ctx.beginPath();
-    validData.forEach((d,i)=>{
-        const x = padX + stepX*i;
-        const y = padY + innerH*(1-(d.value-minVal)/range);
-        if(i===0)ctx.moveTo(x,y);
-        else ctx.lineTo(x,y);
+    //折线
+    ctx.strokeStyle="#28a78c";ctx.lineWidth=3;ctx.beginPath();
+    valid.forEach((d,i)=>{
+        const x = padX+stepX*i;
+        const y = padY + innerH*(1-(d.value-minV)/range);
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
     })
     ctx.stroke();
-    //绘制圆点
+    //圆点
     ctx.fillStyle="#28a78c";
-    validData.forEach((d,i)=>{
-        const x = padX + stepX*i;
-        const y = padY + innerH*(1-(d.value-minVal)/range);
-        ctx.beginPath();
-        ctx.arc(x,y,4,0,Math.PI*2);
-        ctx.fill();
+    valid.forEach((d,i)=>{
+        const x = padX+stepX*i;
+        const y = padY + innerH*(1-(d.value-minV)/range);
+        ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
     })
 }
 
-//导出CSV表格
+//导出CSV，包含总分、总分排名、所有科目分数+单科排名+进退步
 function exportCSV(){
-    if(examRecords.length===0)return alert("暂无成绩可导出！");
+    if(examRecords.length===0)return alert("暂无数据可导出");
     const subSet = new Set();
     examRecords.forEach(e=>e.subjects.forEach(s=>subSet.add(s.name)));
     const subList = Array.from(subSet);
-    let csv = "考试名称,考试日期,总分,"+subList.join(",")+"\n";
+    //表头
+    let header = "考试名称,考试日期,总分,总分班级排名,总分班排进退步,总分年级排名,总分级排进退步,";
+    subList.forEach(name=>{
+        header += `${name}分数,${name}单科班排,${name}班排进退步,${name}单科级排,${name}级排进退步,`;
+    })
+    let csv = header.slice(0,-1)+"\n";
     examRecords.forEach(exam=>{
         const total = exam.subjects.reduce((sum,s)=>sum+s.score,0);
-        const row = [exam.name,exam.date,total];
-        subList.forEach(subName=>{
-            const find = exam.subjects.find(s=>s.name===subName);
-            row.push(find ? find.score : "");
+        const row = [
+            exam.name,exam.date,total,
+            exam.totalClassRank,exam.totalClassDiff??"",
+            exam.totalGradeRank,exam.totalGradeDiff??""
+        ];
+        subList.forEach(name=>{
+            const s = exam.subjects.find(x=>x.name===name);
+            if(s){
+                row.push(s.score,s.classRank,s.classDiff??"",s.gradeRank,s.gradeDiff??"");
+            }else{
+                row.push("","","","","");
+            }
         })
         csv += row.join(",")+"\n";
     })
     const blob = new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href=url;
-    a.download="成绩记录.csv";
-    a.click();
+    a.href=url;a.download="成绩完整记录_含总分单科排名.csv";a.click();
     URL.revokeObjectURL(url);
-    alert("导出完成！WPS/Excel可直接打开");
+    alert("导出成功！表格包含总分、总分排名、每一科分数+单科班级/年级排名及进退步");
 }
 
-//页面加载初始化
 window.onload = function(){
     renderRecord();
     refreshSelect();
