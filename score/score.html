@@ -3,46 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>成绩记录（总分+单科班级/年级排名）</title>
+<title>成绩记录（总分+单科班级/年级排名 手机适配修复）</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system}
-body{background:#f0f7f4;color:#222;padding-bottom:70px;min-height:100vh}
-.tab-bar{position:fixed;bottom:0;left:0;right:0;height:60px;background:#fff;display:flex;border-top:1px solid #ddd}
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;color:#888;cursor:pointer}
-.tab-item.active{color:#28a78c}
+body{background:#f0f7f4;color:#222;padding-bottom:80px;min-height:100vh}
+/*底部导航*/
+.tab-bar{position:fixed;bottom:0;left:0;right:0;height:65px;background:#fff;display:flex;border-top:1px solid #ddd}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;color:#888;cursor:pointer}
+.tab-item.active{color:#28a78c;font-weight:500}
+/*页面容器*/
 .page{padding:16px;display:none}
 .page.active{display:block}
-.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #00000010}
-.title{font-size:18px;font-weight:600;margin-bottom:16px;color:#1a6b57}
-input,select{width:100%;padding:12px;border:1px solid #cce8df;border-radius:8px;margin:8px 0;font-size:15px;outline:none}
-.btn{width:100%;padding:13px;border:none;border-radius:8px;font-size:16px;font-weight:500;cursor:pointer;margin-top:10px}
+.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 2px 10px #0000000f}
+.title{font-size:22px;font-weight:600;margin-bottom:20px;color:#1a6b57}
+input,select{width:100%;padding:13px;border:1px solid #cce8df;border-radius:10px;margin:8px 0;font-size:16px;outline:none;background:#fff}
+/*总分排名双行自适应*/
+.rank-row{display:flex;gap:10px;width:100%}
+.rank-row input{flex:1}
+/*科目行 手机弹性自适应布局，解决挤压消失*/
+.subject-item{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #f0f7f4;margin-bottom:8px}
+.subject-item input{flex:1;min-width:75px;flex-basis:21%}
+.sub-del{width:44px;height:44px;background:#eee;color:#f44336;border:none;border-radius:8px;cursor:pointer;font-size:18px;flex-shrink:0}
+.btn{width:100%;padding:15px;border:none;border-radius:10px;font-size:17px;font-weight:500;cursor:pointer;margin-top:12px}
 .btn-primary{background:#28a78c;color:#fff}
 .btn-danger{background:#ee6b6b;color:#fff}
 .btn-export{background:#4285f4;color:#fff}
-.subject-item{display:grid;grid-template-columns:1fr 80px 80px 80px 40px;gap:6px;align-items:center;margin:8px 0}
-.sub-del{width:40px;background:#eee;color:#f44336;border:none;padding:10px;border-radius:6px;cursor:pointer}
+.add-sub-btn{background:#e8f5f1;color:#28a78c}
 .select-subject{margin-bottom:20px}
-.empty-tip{text-align:center;padding:40px 0;color:#777}
-#chartBox{width:100%;height:320px;border:1px solid #e0ece8;border-radius:8px;margin-top:10px}
+.empty-tip{text-align:center;padding:50px 0;color:#777;font-size:16px}
+#chartBox{width:100%;height:340px;border:1px solid #e0ece8;border-radius:10px;margin-top:10px}
 .up{color:#00b359;font-weight:bold}
 .down{color:#f44336;font-weight:bold}
 .same{color:#666}
-.sub-block{background:#f8fbf9;padding:10px;border-radius:8px;margin:6px 0}
+.sub-block{background:#f8fbf9;padding:12px;border-radius:10px;margin:8px 0}
+.tip-text{font-size:15px;color:#555;margin:6px 0 12px}
 </style>
 </head>
 <body>
 <div id="app">
-    <!--录入页：总分排名 + 每科独立班/级排名输入-->
+    <!--录入页：修复手机科目布局-->
     <div class="page" id="page0">
         <div class="title">录入本次考试成绩</div>
         <div class="card">
             <input id="examName" placeholder="考试名称，如：高一第一次月考">
             <input type="date" id="examDate">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="rank-row">
                 <input type="number" id="classRankInput" placeholder="总分班级排名">
                 <input type="number" id="gradeRankInput" placeholder="总分年级排名">
             </div>
-            <div style="font-size:14px;color:#666;margin:4px 0">下方填写每科：科目名 / 分数 / 单科班排 / 单科级排</div>
+            <div class="tip-text">下方填写每科：科目名 / 分数 / 单科班排 / 单科级排</div>
             <div id="subjectWrap">
                 <div class="subject-item">
                     <input class="subName" placeholder="科目名" value="语文">
@@ -66,23 +75,23 @@ input,select{width:100%;padding:12px;border:1px solid #cce8df;border-radius:8px;
                     <button class="sub-del" onclick="delSub(this)">-</button>
                 </div>
             </div>
-            <button class="btn" style="background:#e8f5f1;color:#28a78c" onclick="addSubject()">+ 添加科目行</button>
+            <button class="btn add-sub-btn" onclick="addSubject()">+ 添加科目行</button>
             <button class="btn btn-primary" onclick="saveExam()">保存本次全部成绩</button>
         </div>
     </div>
 
-    <!--成绩列表：总分排名+单科详细排名进退步-->
+    <!--成绩列表-->
     <div class="page" id="page1">
         <div class="title">全部考试记录</div>
         <button class="btn btn-export" onclick="exportCSV()">导出完整成绩（总分+单科所有排名）</button>
         <div id="recordWrap"></div>
     </div>
 
-    <!--趋势图表：总分/总分班排/总分级排/单科分数/单科班排/单科级排全部可选-->
+    <!--趋势图表-->
     <div class="page" id="page2">
         <div class="title">分数&排名趋势图表</div>
         <div class="card select-subject">
-            <label>选择查看数据：</label>
+            <label style="font-size:16px">选择查看数据：</label>
             <select id="chartSelect" onchange="drawChart()">
                 <option value="totalScore">总分</option>
                 <option value="totalClassRank">总分班级排名</option>
@@ -115,7 +124,7 @@ function switchTab(num){
     if(num===2)refreshSelect();
 }
 
-//新增科目行
+//新增科目行（弹性布局，手机不会挤没）
 function addSubject(){
     const wrap = document.getElementById("subjectWrap");
     const div = document.createElement("div");
@@ -128,7 +137,7 @@ function delSub(btn){
     const p = btn.parentElement;
     const wrap = document.getElementById("subjectWrap");
     if(wrap.children.length>1)p.remove();
-    else alert("至少保留一科");
+    else alert("至少保留一科输入行");
 }
 
 //保存考试，自动计算总分进退步、每科单科进退步
@@ -253,17 +262,17 @@ function renderRecord(){
             }
             subHtml += `
             <div class="sub-block">
-                <div style="font-weight:600">${s.name}：${s.score}分</div>
-                <div style="font-size:13px;margin-top:4px">${crTxt} | ${grTxt}</div>
+                <div style="font-weight:600;font-size:17px">${s.name}：${s.score}分</div>
+                <div style="font-size:14px;margin-top:6px">${crTxt} | ${grTxt}</div>
             </div>`;
         })
         html += `
         <div class="card">
-            <div style="font-weight:600">${exam.name} · ${exam.date}</div>
-            <div style="margin:6px 0">总分数：${total}</div>
-            <div style="margin:4px 0">${totalCRText}</div>
-            <div style="margin:4px 0">${totalGRText}</div>
-            <div style="margin-top:8px;font-size:14px;font-weight:500">各科详情：</div>
+            <div style="font-weight:600;font-size:18px">${exam.name} · ${exam.date}</div>
+            <div style="margin:8px 0;font-size:16px">总分数：${total}</div>
+            <div style="margin:6px 0;font-size:15px">${totalCRText}</div>
+            <div style="margin:6px 0;font-size:15px">${totalGRText}</div>
+            <div style="margin-top:10px;font-size:16px;font-weight:500">各科详情：</div>
             ${subHtml}
             <button class="btn btn-danger" onclick="delExam(${idx})">删除本条记录</button>
         </div>`;
@@ -309,7 +318,7 @@ function recalcAllDiff(){
     }
 }
 
-//刷新图表下拉选项，自动添加所有单科分数/单科班排/单科级排
+//刷新图表下拉选项
 function refreshSelect(){
     const sel = document.getElementById("chartSelect");
     const tip = document.getElementById("chartTip");
@@ -319,7 +328,6 @@ function refreshSelect(){
         return;
     }
     tip.style.display="none";chartCanvas.style.display="block";
-    //收集所有科目
     const subSet = new Set();
     examRecords.forEach(e=>e.subjects.forEach(s=>subSet.add(s.name)));
     const subList = Array.from(subSet);
@@ -333,7 +341,7 @@ function refreshSelect(){
     drawChart();
 }
 
-//绘制折线图，兼容所有数据类型
+//绘制折线图
 function drawChart(){
     const target = document.getElementById("chartSelect").value;
     const w = chartCanvas.clientWidth;
@@ -377,14 +385,14 @@ function drawChart(){
     for(let i=0;i<=5;i++){
         const y = padY + innerH*(1-i/5);
         ctx.beginPath();ctx.moveTo(padX,y);ctx.lineTo(w-padX,y);ctx.stroke();
-        ctx.fillStyle="#666";ctx.font="11px system-ui";
+        ctx.fillStyle="#666";ctx.font="12px system-ui";
         ctx.fillText(String(minV+range*(i/5)),5,y+4);
     }
     //X轴文字
     const stepX = innerW/(valid.length-1);
     valid.forEach((d,i)=>{
         const x = padX+stepX*i;
-        ctx.fillText(d.label.slice(0,4),x-18,h-10);
+        ctx.fillText(d.label.slice(0,4),x-20,h-12);
     })
     //折线
     ctx.strokeStyle="#28a78c";ctx.lineWidth=3;ctx.beginPath();
@@ -399,17 +407,16 @@ function drawChart(){
     valid.forEach((d,i)=>{
         const x = padX+stepX*i;
         const y = padY + innerH*(1-(d.value-minV)/range);
-        ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();
     })
 }
 
-//导出CSV，包含总分、总分排名、所有科目分数+单科排名+进退步
+//导出CSV
 function exportCSV(){
     if(examRecords.length===0)return alert("暂无数据可导出");
     const subSet = new Set();
     examRecords.forEach(e=>e.subjects.forEach(s=>subSet.add(s.name)));
     const subList = Array.from(subSet);
-    //表头
     let header = "考试名称,考试日期,总分,总分班级排名,总分班排进退步,总分年级排名,总分级排进退步,";
     subList.forEach(name=>{
         header += `${name}分数,${name}单科班排,${name}班排进退步,${name}单科级排,${name}级排进退步,`;
