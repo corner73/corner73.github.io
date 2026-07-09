@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>成绩记录（总分+单科班级/年级排名 手机适配修复）</title>
+<title>成绩记录</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system}
 body{background:#f0f7f4;color:#222;padding-bottom:80px;min-height:100vh}
@@ -75,7 +75,7 @@ input,select{width:100%;padding:13px;border:1px solid #cce8df;border-radius:10px
                     <button class="sub-del" onclick="delSub(this)">-</button>
                 </div>
             </div>
-            <button class="btn add-sub-btn" onclick="addSubject()">+ 添加科目行</button>
+            <button class="btn add-sub-btn" onclick="addSubject()">+ 添加科目</button>
             <button class="btn btn-primary" onclick="saveExam()">保存本次全部成绩</button>
         </div>
     </div>
@@ -137,7 +137,7 @@ function delSub(btn){
     const p = btn.parentElement;
     const wrap = document.getElementById("subjectWrap");
     if(wrap.children.length>1)p.remove();
-    else alert("至少保留一科输入行");
+    else alert("至少保留一科");
 }
 
 //保存考试，自动计算总分进退步、每科单科进退步
